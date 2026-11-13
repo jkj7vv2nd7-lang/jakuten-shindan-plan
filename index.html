@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ニガテバスター ― 5教科弱点診断と復習プラン</title>
+<meta name="description" content="「ニガテバスター」は、5教科の弱点を診断して、自分だけの復習プランを作る中学生向け学習アプリ。間隔をあけた復習と、間違いの種類の記録で、弱点を少しずつ減らします。">
+<meta name="apple-mobile-web-app-title" content="ニガテバスター">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta property="og:title" content="ニガテバスター ― 5教科弱点診断と復習プラン">
+<meta property="og:description" content="5教科の弱点を診断して、自分だけの復習プランを作る中学生向け学習アプリ。">
+<meta property="og:image" content="og.png">
+<meta property="og:type" content="website">
+<style>
+:root{
+  --ink:#22303c; --paper:#f7fbff; --card:#ffffff; --line:#d7e5ef;
+  --sky:#2f9fd8; --teal:#2f9e8e; --accent:#f2b234; --bad:#d84f4f; --good:#2f9e5f;
+}
+*{box-sizing:border-box;}
+html{font-size:17px;}
+body{margin:0; font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",sans-serif;
+  background:var(--paper); color:var(--ink); line-height:1.65; padding-bottom:50px;}
+header{background:linear-gradient(135deg,#2f9fd8,#2f9e8e); color:#fff; padding:18px 14px 14px; text-align:center;}
+header h1{margin:0; font-size:1.5rem; letter-spacing:.04em;}
+header p{margin:4px 0 0; font-size:.85rem; opacity:.94;}
+main{max-width:820px; margin:0 auto; padding:14px;}
+.screen{display:none;}
+.screen.on{display:block;}
+.card{background:var(--card); border:1.5px solid var(--line); border-radius:14px; padding:16px; margin:0 0 14px;}
+h2.sec{font-size:1.12rem; margin:0 0 10px; border-left:6px solid var(--sky); padding-left:9px;}
+.small{font-size:.82rem; color:#567;}
+.btn{display:inline-block; border:none; cursor:pointer; font:inherit; font-weight:700;
+  background:var(--sky); color:#fff; border-radius:11px; padding:12px 20px; font-size:1rem;}
+.btn.teal{background:var(--teal);} .btn.ghost{background:#fff; color:var(--sky); border:1.6px solid var(--sky);}
+.btn.warn{background:var(--accent); color:#4a3200;}
+.btn:disabled{opacity:.5;}
+.toolbar{display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;}
+.subj-grid{display:grid; grid-template-columns:1fr 1fr; gap:11px;}
+@media(min-width:560px){.subj-grid{grid-template-columns:repeat(3,1fr);}}
+.subj-btn{border:2px solid var(--line); background:#fff; border-radius:14px; padding:16px 10px; cursor:pointer; font:inherit; text-align:center;}
+.subj-btn .ic{font-size:1.9rem; display:block;}
+.subj-btn .nm{font-weight:800; font-size:1.08rem;}
+.subj-btn .st{font-size:.76rem; color:#678; display:block; margin-top:3px;}
+.progress{font-size:.85rem; color:#567; margin-bottom:8px;}
+.qstem{font-size:1.08rem; font-weight:600; margin-bottom:6px;}
+.figbox{text-align:center; margin:10px 0;}
+.choices{display:grid; gap:10px; margin-top:12px;}
+.choice{border:2px solid var(--line); background:#fff; border-radius:12px; padding:13px 14px; cursor:pointer; font:inherit; text-align:left; font-size:1rem;}
+.choice.right{border-color:var(--good); background:#eafaf0;}
+.choice.wrong{border-color:var(--bad); background:#fdeeee;}
+.choice:disabled{cursor:default; opacity:.92;}
+.feedback{margin-top:14px; border-radius:12px; padding:13px 14px; display:none;}
+.feedback.ok{background:#eafaf0; border:1.5px solid #a9dfc0; display:block;}
+.feedback.ng{background:#fdf1ec; border:1.5px solid #f0c0a9; display:block;}
+.feedback .ttl{font-weight:800; font-size:1.05rem;}
+.expl{margin-top:6px; font-size:.94rem;}
+.typepick{margin-top:10px;}
+.typepick .tp-ttl{font-weight:700; font-size:.92rem;}
+.type-btns{display:flex; flex-wrap:wrap; gap:8px; margin-top:7px;}
+.type-btn{border:1.7px solid var(--line); background:#fff; border-radius:999px; padding:8px 14px; cursor:pointer; font:inherit; font-size:.92rem;}
+.type-btn.on{border-color:var(--accent); background:#fff6dd; font-weight:700;}
+.bar-row{display:grid; grid-template-columns:6.5em 1fr 3.2em; align-items:center; gap:9px; margin:7px 0; font-size:.93rem;}
+.bar{height:15px; background:#e8f1f7; border-radius:8px; overflow:hidden;}
+.bar i{display:block; height:100%; background:var(--sky); border-radius:8px;}
+.bar i.low{background:var(--bad);} .bar i.mid{background:var(--accent);}
+.uptag{display:inline-block; background:#eafaf0; border:1.4px solid #a9dfc0; color:#1c6b3c; border-radius:999px; padding:2px 11px; margin:3px 4px 3px 0; font-size:.88rem; font-weight:700;}
+.duetag{display:inline-block; background:#fff6dd; border:1.4px solid #ecd28a; border-radius:999px; padding:1px 10px; font-size:.8rem; margin-left:7px;}
+#scratchWrap{display:none; margin-top:10px;}
+#scratchWrap.on{display:block;}
+#scratchScroll{overflow:auto; max-height:330px; background:#fffef8; border:1.6px dashed #b9cdd9; border-radius:10px 0 0 0;}
+#scratch{display:block; touch-action:none;}
+#scratchGrid{display:grid; grid-template-columns:1fr 30px; grid-template-rows:auto 30px;}
+#vStrip{background:#dceefb; border:1.6px solid #b9cdd9; border-left:none; border-radius:0 10px 0 0; touch-action:none; cursor:grab;
+  display:flex; align-items:center; justify-content:center; color:#5b84a8; font-size:.8rem; user-select:none; -webkit-user-select:none;}
+#hStrip{background:#dceefb; border:1.6px solid #b9cdd9; border-top:none; border-radius:0 0 0 10px; touch-action:none; cursor:grab;
+  display:flex; align-items:center; justify-content:center; color:#5b84a8; font-size:.8rem; user-select:none; -webkit-user-select:none;}
+#scratchCorner{background:#dceefb; border-right:1.6px solid #b9cdd9; border-bottom:1.6px solid #b9cdd9; border-radius:0 0 10px 0;}
+.legend{display:flex; gap:14px; flex-wrap:wrap; font-size:.84rem; color:#567;}
+/* 教科書表記 */
+.v{font-family:"Times New Roman","Hiragino Mincho ProN",serif; font-style:italic;}
+.fr{display:inline-block; vertical-align:-0.55em; text-align:center; margin:0 .12em; font-size:.92em;}
+.fr .fr-t{display:block; padding:0 .28em; border-bottom:.09em solid currentColor; line-height:1.25;}
+.fr .fr-b{display:block; padding:0 .28em; line-height:1.25;}
+.rad{white-space:nowrap; font-family:"Times New Roman","Hiragino Mincho ProN",serif;}
+.rad .rad-in{border-top:.065em solid currentColor; padding:.03em .16em 0 .03em; margin-left:-.14em;}
+sup{font-size:.72em;}
+/* 印刷 */
+#printSheet{display:none;}
+@media print{
+  body>*{display:none !important;}
+  #printSheet{display:block !important; color:#000; font-size:12pt;}
+  #printSheet h1{font-size:16pt; margin:0 0 4pt;}
+  #printSheet .pq{margin:0 0 14pt; page-break-inside:avoid;}
+  #printSheet .pq .choices-print{margin:4pt 0 0 1em;}
+  #printSheet .answers{page-break-before:always;}
+  @page{size:A4; margin:16mm;}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>🔍 ニガテバスター</h1>
+  <p>5教科弱点診断と復習プラン ― 弱点を見つけて、間隔をあけて復習する中学生のための学習アプリ</p>
+</header>
+<main>
+<!-- ============ ホーム ============ -->
+<section id="scr-home" class="screen on">
+  <div class="card" id="todayCard">
+    <h2 class="sec">📅 今日の復習</h2>
+    <div id="todayBody"></div>
+  </div>
+  <div class="card">
+    <h2 class="sec">🩺 弱点診断をはじめる</h2>
+    <p class="small">教科をえらぶと、その教科の診断（12問）が始まります。間違えた問題は、復習キューに入って、間隔をあけて出てきます。</p>
+    <div class="subj-grid" id="subjGrid"></div>
+  </div>
+  <div class="card">
+    <h2 class="sec">📊 間違いの種類の傾向</h2>
+    <div id="tendencyBody"></div>
+  </div>
+  <div class="card">
+    <h2 class="sec">使い方と約束</h2>
+    <p class="small">診断は「テスト」ではなく、弱点を見つけるためのものです。間違えたら、その場で「間違いの種類」（うっかりミス／考え方が分からなかった／読み違い）を自分で選んでください。記録はこの端末の中にだけ保存され、外に送られることはありません。結果を気にしすぎず、今日の復習を少しずつ進めることが力になります。</p>
+  </div>
+</section>
+
+<!-- ============ 診断・復習の1問画面 ============ -->
+<section id="scr-quiz" class="screen">
+  <div class="card">
+    <div class="progress" id="quizProgress"></div>
+    <div class="qstem" id="quizStem"></div>
+    <div class="figbox" id="quizFig"></div>
+    <div id="scratchWrap">
+      <div class="small" id="scratchLabel">✏️ メモ描きスペース（採点には関係しません）</div>
+      <div id="scratchGrid">
+        <div id="scratchScroll"><canvas id="scratch"></canvas></div>
+        <div id="vStrip" title="上下にスクロール">↕</div>
+        <div id="hStrip" title="左右にスクロール">↔</div>
+        <div id="scratchCorner"></div>
+      </div>
+      <div class="small">広がった分は、右と下の帯（↕ ↔）を引っぱると見渡せます。</div>
+      <div class="toolbar"><button class="btn ghost" id="scratchClear">メモを消す</button></div>
+    </div>
+    <div class="choices" id="quizChoices"></div>
+    <div class="feedback" id="quizFeedback">
+      <div class="ttl" id="fbTitle"></div>
+      <div class="expl" id="fbExpl"></div>
+      <div class="typepick" id="typePick" style="display:none">
+        <div class="tp-ttl">この間違いは、どの種類だと思いますか（自分で選ぶことが復習の第一歩です）</div>
+        <div class="type-btns">
+          <button class="type-btn" data-t="careless">うっかりミス</button>
+          <button class="type-btn" data-t="unknown">考え方が分からなかった</button>
+          <button class="type-btn" data-t="misread">問題の読み違い</button>
+        </div>
+      </div>
+      <div class="toolbar"><button class="btn teal" id="quizNext" disabled>次へ</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 結果 ============ -->
+<section id="scr-result" class="screen">
+  <div class="card">
+    <h2 class="sec" id="resultTitle">診断の結果</h2>
+    <div id="resultSummary"></div>
+    <h3 style="margin:16px 0 6px; font-size:1rem;">単元ごとの正答率</h3>
+    <div id="resultBars"></div>
+    <div id="resultGrowth"></div>
+    <div id="resultTypes"></div>
+    <div class="toolbar">
+      <button class="btn" id="toPlanBtn">復習プランを見る</button>
+      <button class="btn ghost" id="toHomeBtn1">ホームへ</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 復習プラン ============ -->
+<section id="scr-plan" class="screen">
+  <div class="card">
+    <h2 class="sec">🗓 復習プラン</h2>
+    <p class="small">間違えた問題は、間隔をあけて（翌日 → 3日後 → 7日後）もう一度出てきます。3回続けて正解すると、キューから卒業です。</p>
+    <div id="planBody"></div>
+    <div class="toolbar">
+      <button class="btn warn" id="printBtn">🖨 復習プリントを印刷</button>
+      <button class="btn ghost" id="toHomeBtn2">ホームへ</button>
+    </div>
+    <p class="small">復習プリントは、キューに入っている問題だけを集めた A4 用の印刷表示です。答えと解説は最後のページにあります。</p>
+  </div>
+</section>
+</main>
+
+<!-- ============ 印刷シート ============ -->
+<div id="printSheet"></div>
+
+<script>
+// 弱点診断・復習プラン 問題データ（全て自作の問題です）
+// 数式の部品: .v=変数(セリフイタリック) / .fr=分数(横棒) / .rad=根号(上線つき) / sup=累乗
+const SUBJECTS = [
+ {id:'math', name:'数学', color:'#2f7fc4', icon:'📐'},
+ {id:'jpn',  name:'国語', color:'#c4542f', icon:'📖'},
+ {id:'eng',  name:'英語', color:'#7a4fc9', icon:'🔤'},
+ {id:'sci',  name:'理科', color:'#2f9e6e', icon:'🔬'},
+ {id:'soc',  name:'社会', color:'#c9932f', icon:'🌏'}
+];
+const QUESTIONS = [
+/* ================= 数学 ================= */
+{s:'math', u:'正負の数と文字式', q:'(−3)＋(＋5) の計算結果はどれですか。',
+ c:['2','−2','8','−8'], a:0,
+ e:'符号の違う2数の和は、絶対値の差に、絶対値の大きい方の符号をつけます。5−3＝2で、符号は＋です。'},
+{s:'math', u:'正負の数と文字式', q:'今日の気温は −2℃ でした。ここから 5℃ 下がると、何℃ になりますか。',
+ c:['−7℃','−3℃','3℃','7℃'], a:0,
+ e:'下がる方向は − です。−2−5＝−7 で、−7℃ になります。'},
+{s:'math', u:'正負の数と文字式', q:'(−2)<sup>3</sup> の値はいくつですか。',
+ c:['−8','8','−6','6'], a:0,
+ e:'(−2)<sup>3</sup> は (−2)×(−2)×(−2)。マイナスが3回（奇数回）出るので、答えの符号は − になり、−8 です。'},
+{s:'math', u:'正負の数と文字式', q:'<i class="v">x</i>＝4 のとき、式 2<i class="v">x</i>＋3 の値はいくつですか。',
+ c:['11','9','14','8'], a:0,
+ e:'2<i class="v">x</i> は 2×<i class="v">x</i> のこと。<i class="v">x</i> に 4 を当てはめると 2×4＋3＝11 です。'},
+{s:'math', u:'方程式', q:'方程式 <i class="v">x</i>＋5＝12 の解はどれですか。',
+ c:['<i class="v">x</i>＝7','<i class="v">x</i>＝17','<i class="v">x</i>＝5','<i class="v">x</i>＝−7'], a:0,
+ e:'両辺から 5 を引くと <i class="v">x</i>＝12−5＝7 になります。'},
+{s:'math', u:'方程式', q:'方程式 3<i class="v">x</i>＝18 の解はどれですか。',
+ c:['<i class="v">x</i>＝6','<i class="v">x</i>＝15','<i class="v">x</i>＝21','<i class="v">x</i>＝3'], a:0,
+ e:'両辺を 3 で割ると <i class="v">x</i>＝18÷3＝6 になります。'},
+{s:'math', u:'方程式', q:'方程式 <span class="fr"><span class="fr-t"><i class="v">x</i></span><span class="fr-b">2</span></span>＋3＝7 の解はどれですか。',
+ c:['<i class="v">x</i>＝8','<i class="v">x</i>＝2','<i class="v">x</i>＝20','<i class="v">x</i>＝5'], a:0,
+ e:'まず両辺から 3 を引くと <span class="fr"><span class="fr-t"><i class="v">x</i></span><span class="fr-b">2</span></span>＝4。両辺を 2 倍して <i class="v">x</i>＝8 です。'},
+{s:'math', u:'方程式', q:'りんご 3 個と、120 円のみかん 1 個を買うと、合計 720 円でした。りんご 1 個の値段は、何円ですか。',
+ c:['200円','240円','180円','600円'], a:0,
+ e:'りんご 1 個を <i class="v">x</i> 円とすると 3<i class="v">x</i>＋120＝720。3<i class="v">x</i>＝600 だから <i class="v">x</i>＝200 円です。'},
+{s:'math', u:'図形', fig:'tri', scratch:true,
+ q:'下の三角形で、角 <i class="v">x</i> の大きさは何度ですか。',
+ c:['60°','50°','70°','40°'], a:0,
+ e:'三角形の内角の和は 180°。180−50−70＝60° です。'},
+{s:'math', u:'図形', fig:'rect', scratch:true,
+ q:'下の長方形の面積は、何 cm<sup>2</sup> ですか。',
+ c:['40 cm<sup>2</sup>','26 cm<sup>2</sup>','13 cm<sup>2</sup>','80 cm<sup>2</sup>'], a:0,
+ e:'長方形の面積は たて×横。5×8＝40 cm<sup>2</sup> です。'},
+{s:'math', u:'図形', fig:'circle', scratch:true,
+ q:'下の円（半径 3 cm）の面積は、何 cm<sup>2</sup> ですか。円周率は π とします。',
+ c:['9π cm<sup>2</sup>','6π cm<sup>2</sup>','3π cm<sup>2</sup>','18π cm<sup>2</sup>'], a:0,
+ e:'円の面積は 半径×半径×π。3×3×π＝9π cm<sup>2</sup> です。'},
+{s:'math', u:'図形',
+ q:'面積が 5 cm<sup>2</sup> の正方形の、1 辺の長さはどれですか。',
+ c:['<span class="rad">√<span class="rad-in">5</span></span> cm','<span class="rad">√<span class="rad-in">25</span></span> cm','2.5 cm','5 cm'], a:0,
+ e:'1 辺を <i class="v">x</i> cm とすると <i class="v">x</i><sup>2</sup>＝5。<i class="v">x</i> は 2 乗して 5 になる正の数だから、<i class="v">x</i>＝<span class="rad">√<span class="rad-in">5</span></span> cm です。'},
+/* ================= 国語 ================= */
+{s:'jpn', u:'言葉のきまり', q:'文「犬が 元気に 走る。」で、主語はどれですか。',
+ c:['「犬が」','「元気に」','「走る」','「犬が 元気に」'], a:0,
+ e:'主語は「何が」にあたる部分。「何が走るのか」→「犬が」が主語です。'},
+{s:'jpn', u:'言葉のきまり', q:'文「犬が 元気に 走る。」で、述語はどれですか。',
+ c:['「走る」','「犬が」','「元気に」','「犬が 走る」'], a:0,
+ e:'述語は「どうする・何だ」にあたる部分で、文の最後にある「走る」が述語です。'},
+{s:'jpn', u:'言葉のきまり', q:'「美しい」という言葉の品詞は、どれですか。',
+ c:['形容詞','動詞','名詞','副詞'], a:0,
+ e:'「美しい」は、ものの様子を表し、「〜い」で終わって活用する言葉なので形容詞です。'},
+{s:'jpn', u:'言葉のきまり', q:'「見る」の尊敬語として正しいものは、どれですか。',
+ c:['ご覧になる','拝見する','ご覧くださる','見なさる'], a:0,
+ e:'目上の人の動作に使う尊敬語は「ご覧になる」。「拝見する」は自分がへりくだる謙譲語です。'},
+{s:'jpn', u:'漢字と語彙', q:'「相変わらず」の「相」の読み方は、どれですか。',
+ c:['あい','そう','しょう','あ'], a:0,
+ e:'「相変わらず」は「あいかわらず」。「相」は、熟語によって「あい」「そう」「しょう」と読み方が変わります。'},
+{s:'jpn', u:'漢字と語彙', q:'「ふんいき」を漢字で正しく書いたものは、どれですか。',
+ c:['雰囲気','分囲気','雰囲気','氛囲気'], a:0,
+ e:'正しくは「雰囲気」。「雰」の字は「雨かんむり」に「分」と書きます。'},
+{s:'jpn', u:'漢字と語彙', q:'「挨拶」の読み方は、どれですか。',
+ c:['あいさつ','あいさく','かいさつ','あいせつ'], a:0,
+ e:'「挨拶」は「あいさつ」と読みます。「挨」は「あい」、「拶」は「さつ」です。'},
+{s:'jpn', u:'漢字と語彙', q:'「彼の言葉は曖昧だ」の「曖昧」の意味として正しいものは、どれですか。',
+ c:['はっきりしないこと','大げさなこと','丁寧なこと','新しいこと'], a:0,
+ e:'「曖昧」は、物事がぼんやりして、はっきりしない様子を表します。'},
+{s:'jpn', u:'読解', q:'次の文を読んで答えなさい。「読書は、知らない世界への扉を開く。ページをめくるたびに、出会ったことのない人々の暮らしや、遠い国の景色が目の前に広がる。だからこそ、本は時間を越えて私たちに語りかけてくるのだ。」―― 筆者が言いたいことに最も近いものは、どれですか。',
+ c:['本を読むと、知らない世界を知ることができる','本は、遠い国へ旅行するために読むものだ','本は、昔の人だけが楽しめるものだ','読書は、ページを速くめくることが大切だ'], a:0,
+ e:'第1文「読書は、知らない世界への扉を開く」が筆者の言いたいことの中心です。'},
+{s:'jpn', u:'読解', q:'同じ文について。「ページをめくるたびに」とありますが、このとき広がるものとして、文中に挙げられていないものは、どれですか。',
+ c:['明日の天気の予想','出会ったことのない人々の暮らし','遠い国の景色','遠い国の人々の言葉'], a:0,
+ e:'文中にあるのは「人々の暮らし」と「遠い国の景色」。「明日の天気の予想」は本文にありません。'},
+{s:'jpn', u:'読解', q:'同じ文について。「本は時間を越えて私たちに語りかけてくる」とは、どういうことですか。',
+ c:['昔に書かれた本でも、今の私たちに伝えるものがある','本の中の時計が動いている','本を読むと時間が止まる','本は未来のことを予言する'], a:0,
+ e:'「時間を越えて」は比喩。昔の本の内容が、今の読み手にも伝わる、という意味です。'},
+{s:'jpn', u:'読解', q:'同じ文について。この文章の組み立てとして正しいものは、どれですか。',
+ c:['言いたいことを先に述べ、理由や様子を後に続ける','結論を最後まで書かない','例を3つ並べて終わる','問いかけで始めて問いかけで終わる'], a:0,
+ e:'第1文で主張を示し、後の文でその理由と様子を説明する組み立てです。'},
+/* ================= 英語 ================= */
+{s:'eng', u:'be動詞と一般動詞', q:'（　）に入る言葉として正しいものはどれですか。I （　） a student.',
+ c:['am','is','are','be'], a:0, e:'主語が I のとき、be動詞は am を使います。'},
+{s:'eng', u:'be動詞と一般動詞', q:'（　）に入る言葉として正しいものはどれですか。She （　） tennis every Sunday.',
+ c:['plays','play','playing','played'], a:0,
+ e:'主語が She（三人称単数）で習慣の文なので、一般動詞に s をつけて plays になります。'},
+{s:'eng', u:'be動詞と一般動詞', q:'（　）に入る言葉として正しいものはどれですか。They （　） happy.',
+ c:['are','is','am','be'], a:0, e:'主語が They（複数）のとき、be動詞は are を使います。'},
+{s:'eng', u:'be動詞と一般動詞', q:'（　）に入る言葉として正しいものはどれですか。He doesn’t （　） TV.',
+ c:['watch','watches','watching','watched'], a:0,
+ e:'doesn’t の後は動詞の元の形（原形）を使います。だから watch です。'},
+{s:'eng', u:'過去の文', q:'（　）に入る言葉として正しいものはどれですか。I （　） to school by bus yesterday.',
+ c:['went','go','goes','going'], a:0,
+ e:'yesterday（昨日）があるので過去の文。go の過去形は went です。'},
+{s:'eng', u:'過去の文', q:'（　）に入る言葉として正しいものはどれですか。Did you （　） the movie?',
+ c:['see','saw','sees','seeing'], a:0,
+ e:'Did で始まる疑問文では、動詞は元の形（原形）の see を使います。'},
+{s:'eng', u:'過去の文', q:'文「She was at home last night.」の was は、何の過去形ですか。',
+ c:['be動詞（is/am）の過去形','一般動詞の過去形','助動詞の過去形','名詞の過去形'], a:0,
+ e:'was は be動詞の過去形で、主語が She のような一人・三人称単数のときに使います。'},
+{s:'eng', u:'過去の文', q:'（　）に入る言葉として正しいものはどれですか。We （　） dinner at seven.',
+ c:['ate','eat','eats','eating'], a:0,
+ e:'過去の出来事を表す文なので、eat の過去形 ate が入ります。'},
+{s:'eng', u:'たずねる文と命令文', q:'（　）に入る言葉として正しいものはどれですか。（　） you like music?',
+ c:['Do','Does','Are','Is'], a:0,
+ e:'主語が you で一般動詞 like をたずねる文なので、Do を文の頭に置きます。'},
+{s:'eng', u:'たずねる文と命令文', q:'命令文として正しいものは、どれですか。',
+ c:['Clean your room.','You clean your room please now is.','Cleaning your room.','Room your clean.'], a:0,
+ e:'命令文は、動詞の元の形で始めます。Clean your room.（部屋を掃除しなさい。）'},
+{s:'eng', u:'たずねる文と命令文', q:'（　）に入る言葉として正しいものはどれですか。How many books （　） there on the desk?',
+ c:['are','is','am','be'], a:0,
+ e:'books は複数なので、There are 〜 の形で are を使います。'},
+{s:'eng', u:'たずねる文と命令文', q:'（　）に入る言葉として正しいものはどれですか。Let’s （　） soccer together.',
+ c:['play','plays','playing','to play'], a:0,
+ e:'Let’s の後は動詞の元の形（原形）を使います。'},
+/* ================= 理科 ================= */
+{s:'sci', u:'植物と光合成', q:'植物が光合成で出す気体は、どれですか。',
+ c:['酸素','二酸化炭素','ちっ素','水素'], a:0,
+ e:'光合成では、二酸化炭素と水から養分が作られ、酸素が出されます。'},
+{s:'sci', u:'植物と光合成', q:'光合成に必要なものの組み合わせとして正しいものは、どれですか。',
+ c:['光・水・二酸化炭素','光・酸素・砂糖','暗さ・水・酸素','熱だけ'], a:0,
+ e:'光合成には、光のエネルギーと、水と二酸化炭素が必要です。'},
+{s:'sci', u:'植物と光合成', q:'植物の葉から水が水蒸気として出ていく働き（蒸散）は、主に葉のどこから行われますか。',
+ c:['気孔','葉脈','根毛','花粉'], a:0,
+ e:'蒸散は、葉の裏側に多い小さな孔「気孔」から行われます。'},
+{s:'sci', u:'植物と光合成', q:'植物の根のはたらきとして、正しいものは、どれですか。',
+ c:['土から水や養分を吸収する','光を受けて養分を作る','花粉を作る','実を守る'], a:0,
+ e:'水や養分を吸収するのは根の仕事。光を受けて養分を作るのは葉の仕事です。'},
+{s:'sci', u:'力とばね', q:'あるばねは、2 N の力で 4 cm 伸びます。4 N の力では何 cm 伸びますか。',
+ c:['8 cm','6 cm','4 cm','16 cm'], a:0,
+ e:'ばねの伸びは力の大きさに比例します。力が2倍になれば、伸びも2倍の 8 cm です。'},
+{s:'sci', u:'力とばね', q:'圧力の単位は、どれですか。',
+ c:['Pa（パスカル）','N（ニュートン）','J（ジュール）','W（ワット）'], a:0,
+ e:'圧力の単位は Pa（パスカル）。N は力、J は仕事・エネルギーの単位です。'},
+{s:'sci', u:'力とばね', q:'質量 100 g の物体にはたらく重力の大きさは、約何 N ですか。',
+ c:['約 1 N','約 100 N','約 0.1 N','約 10 N'], a:0,
+ e:'100 g の物体にはたらく重力は約 0.98 N で、およそ 1 N と考えます。'},
+{s:'sci', u:'力とばね', q:'机の上に置いた本が動かないのは、重力とつり合う力がはたらくからです。その力は、どれですか。',
+ c:['机からの垂直抗力','摩擦力だけ','磁力','浮力'], a:0,
+ e:'机の面が本を押し返す力（垂直抗力）と重力がつり合って、本は静止します。'},
+{s:'sci', u:'気体の性質', q:'酸素がものを燃やすのを助ける性質を調べる方法として正しいものは、どれですか。',
+ c:['火のついた線香を入れると、炎が大きくなる','石灰水を白くにごらせる','火を近づけると音を立てて燃える','水に溶かすと青くなる'], a:0,
+ e:'酸素には助燃性があります。石灰水がにごるのは二酸化炭素、音を立てて燃えるのは水素の性質です。'},
+{s:'sci', u:'気体の性質', q:'二酸化炭素を確かめる方法として正しいものは、どれですか。',
+ c:['石灰水に入れると白くにごる','線香の火が大きくなる','マッチの火が音を立てて燃える','においがする'], a:0,
+ e:'二酸化炭素は石灰水を白くにごらせます。これが二酸化炭素の代表的な確かめ方です。'},
+{s:'sci', u:'気体の性質', q:'水素の性質として正しいものは、どれですか。',
+ c:['火を近づけると音を立てて燃える','ものを燃やすのを助ける','石灰水をにごらせる','水に非常によく溶ける'], a:0,
+ e:'水素は燃える気体で、火を近づけるとポンという音を立てて燃えます。'},
+{s:'sci', u:'気体の性質', q:'酸素や水素のように、水に溶けにくい気体を集める方法は、どれですか。',
+ c:['水上置換法','下方置換法','上方置換法','加熱法'], a:0,
+ e:'水に溶けにくい気体は、水と置き換えて集める水上置換法を使います。'},
+/* ================= 社会 ================= */
+{s:'soc', u:'日本の地理', q:'都道府県の中で、最も南にあるのは、どれですか。',
+ c:['沖縄県','鹿児島県','東京都','高知県'], a:0,
+ e:'沖縄県は日本の南西に位置し、都道府県の中で最も南にあります。'},
+{s:'soc', u:'日本の地理', q:'本州と九州の間にある海峡は、どれですか。',
+ c:['関門海峡','津軽海峡','鳴門海峡','対馬海峡'], a:0,
+ e:'本州（山口県）と九州（福岡県）の間が関門海峡。津軽海峡は本州と北海道の間です。'},
+{s:'soc', u:'日本の地理', q:'日本で最も長い川は、どれですか。',
+ c:['信濃川','利根川','石狩川','木曽川'], a:0,
+ e:'信濃川は全長約 367 km で日本最長。流域面積が最大なのは利根川です。'},
+{s:'soc', u:'日本の地理', q:'夏に太平洋側に多く雨を降らせる、湿った季節風は、どちらから吹きますか。',
+ c:['南東から','北西から','真北から','真下から'], a:0,
+ e:'夏の季節風は太平洋（南東）から吹き、湿った空気を運んできます。冬は北西から吹きます。'},
+{s:'soc', u:'歴史', q:'日本に稲作や金属器が伝わった時代は、どれですか。',
+ c:['弥生時代','縄文時代','古墳時代','奈良時代'], a:0,
+ e:'大陸から稲作と青銅器・鉄器が伝わったのは弥生時代です。'},
+{s:'soc', u:'歴史', q:'794 年に平安京へ都を移した天皇は、どれですか。',
+ c:['桓武天皇','聖武天皇','天武天皇','推古天皇'], a:0,
+ e:'794 年、桓武天皇が平安京へ遷都しました。「鳴くよ（794）うぐいす平安京」という覚え方が有名です。'},
+{s:'soc', u:'歴史', q:'鎌倉幕府を開いた人物は、どれですか。',
+ c:['源頼朝','源義経','平清盛','足利尊氏'], a:0,
+ e:'源頼朝が鎌倉に幕府を開きました。義経は頼朝の弟です。'},
+{s:'soc', u:'歴史', q:'大化の改新が始まった年は、どれですか。',
+ c:['645年','794年','1192年','1600年'], a:0,
+ e:'大化の改新は 645 年。中大兄皇子と中臣鎌足らが進めました。「蒸し米（645）作ろう大化の改新」。'},
+{s:'soc', u:'公民のきほん', q:'日本国憲法の3つの基本原則に含まれないものは、どれですか。',
+ c:['王権神授説','国民主権','基本的人権の尊重','平和主義'], a:0,
+ e:'憲法の3原則は、国民主権・基本的人権の尊重・平和主義。王権神授説は、王の権力を神に結びつける古い考えです。'},
+{s:'soc', u:'公民のきほん', q:'日本国憲法で、国会はどのような機関とされていますか。',
+ c:['国権の最高機関で、国の唯一の立法機関','内閣の下にある機関','裁判を行う機関','地方だけを担当する機関'], a:0,
+ e:'憲法41条で、国会は「国権の最高機関」であり「国の唯一の立法機関」と定められています。'},
+{s:'soc', u:'公民のきほん', q:'現在の日本で、選挙権が与えられる年齢は、どれですか。',
+ c:['満18歳以上','満20歳以上','満16歳以上','満25歳以上'], a:0,
+ e:'2016 年から選挙権年齢は満18歳以上に引き下げられました。'},
+{s:'soc', u:'公民のきほん', q:'三権分立で分けられている3つの権力の組み合わせとして正しいものは、どれですか。',
+ c:['立法・行政・司法','立法・経済・教育','行政・軍事・司法','司法・外交・経済'], a:0,
+ e:'三権は、立法（国会）・行政（内閣）・司法（裁判所）。互いに抑え合って権力の集中を防ぎます。'}
+];
+
+/* ================= 図（数値と一致するSVG） ================= */
+function figSVG(kind){
+  if(kind==='tri') return '<svg width="300" height="190" viewBox="0 0 300 190" role="img" aria-label="三角形の図">'
+    + '<polygon points="60,160 250,160 110,35" fill="#eaf5fd" stroke="#2f6ea5" stroke-width="2.5"/>'
+    + '<text x="70" y="150" font-size="19" fill="#22303c">50°</text>'
+    + '<text x="215" y="150" font-size="19" fill="#22303c">70°</text>'
+    + '<text x="112" y="30" font-size="20" fill="#c0392b" font-weight="bold" font-family="Times New Roman" font-style="italic">x</text>'
+    + '<text x="128" y="30" font-size="19" fill="#c0392b">°</text></svg>';
+  if(kind==='rect') return '<svg width="310" height="180" viewBox="0 0 310 180" role="img" aria-label="長方形の図">'
+    + '<rect x="55" y="35" width="200" height="110" fill="#fdf3e0" stroke="#a5722f" stroke-width="2.5"/>'
+    + '<text x="135" y="25" font-size="19" fill="#22303c">8 cm</text>'
+    + '<text x="262" y="98" font-size="19" fill="#22303c">5 cm</text></svg>';
+  if(kind==='circle') return '<svg width="220" height="200" viewBox="0 0 220 200" role="img" aria-label="円の図">'
+    + '<circle cx="105" cy="95" r="75" fill="#eafaf0" stroke="#2f7d54" stroke-width="2.5"/>'
+    + '<line x1="105" y1="95" x2="180" y2="95" stroke="#2f7d54" stroke-width="2"/>'
+    + '<circle cx="105" cy="95" r="3.5" fill="#2f7d54"/>'
+    + '<text x="118" y="85" font-size="19" fill="#22303c">3 cm</text></svg>';
+  return '';
+}
+/* ================= 音 ================= */
+let AC = null;
+function beep(freq, t0, dur){ if(!AC) return; const o = AC.createOscillator(), g = AC.createGain();
+  o.type='sine'; o.frequency.value=freq; g.gain.setValueAtTime(.14, AC.currentTime+t0);
+  g.gain.exponentialRampToValueAtTime(.001, AC.currentTime+t0+dur);
+  o.connect(g); g.connect(AC.destination); o.start(AC.currentTime+t0); o.stop(AC.currentTime+t0+dur+.02); }
+function soundOK(){ try{ AC = AC || new (window.AudioContext||window.webkitAudioContext)(); beep(880,0,.13); beep(1318,.11,.2); }catch(e){} }
+function soundNG(){ try{ AC = AC || new (window.AudioContext||window.webkitAudioContext)(); beep(220,0,.18); }catch(e){} }
+function soundFanfare(){ try{ AC = AC || new (window.AudioContext||window.webkitAudioContext)(); [523,659,784,1046].forEach((f,i)=>beep(f, i*.12, .22)); }catch(e){} }
+/* ================= 保存 ================= */
+const LS = { hist:'jakuten-history', queue:'jakuten-queue', types:'jakuten-types' };
+function load(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+function save(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+function todayStr(d){ d = d || new Date(); const p = n => String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+function addDays(str, n){ const d = new Date(str+'T00:00:00'); d.setDate(d.getDate()+n); return todayStr(d); }
+/* ================= 画面遷移 ================= */
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on', s.id===id));
+  window.scrollTo(0,0); }
+/* ================= ホーム ================= */
+const TYPE_LABEL = { careless:'うっかりミス', unknown:'考え方が分からなかった', misread:'問題の読み違い' };
+function renderHome(){
+  const q = load(LS.queue, []);
+  const t = todayStr();
+  const due = q.filter(e => e.due <= t);
+  document.getElementById('todayBody').innerHTML = due.length
+    ? '<p style="margin:0">今日の分の復習が <b>'+due.length+' 問</b> あります。</p>'
+      + '<div class="toolbar"><button class="btn teal" id="startReview">今日の復習をはじめる</button></div>'
+    : '<p style="margin:0">今日の分の復習はありません。'+(q.length ? '（キューには '+q.length+' 問が入っていて、予定日に出てきます）' : 'まずは診断を受けてみましょう。')+'</p>';
+  const b = document.getElementById('startReview');
+  if(b) b.addEventListener('click', ()=> startSession('review', due.map(e=>e.qid)));
+  const hist = load(LS.hist, {});
+  document.getElementById('subjGrid').innerHTML = SUBJECTS.map(s => {
+    const h = hist[s.id] || [];
+    const last = h.length ? '前回：'+h[h.length-1].date.slice(5).replace('-','/')+' に実施' : 'まだ診断していません';
+    return '<button class="subj-btn" data-s="'+s.id+'"><span class="ic">'+s.icon+'</span>'
+      + '<span class="nm" style="color:'+s.color+'">'+s.name+'</span><span class="st">'+last+'</span></button>';
+  }).join('');
+  document.querySelectorAll('.subj-btn').forEach(btn => btn.addEventListener('click', ()=>{
+    startSession('diag', QUESTIONS.filter(qq => qq.s === btn.dataset.s).map(qq => qq.id));
+  }));
+  const types = load(LS.types, {careless:0, unknown:0, misread:0});
+  const total = types.careless + types.unknown + types.misread;
+  document.getElementById('tendencyBody').innerHTML = total === 0
+    ? '<p class="small" style="margin:0">まだ記録がありません。診断で間違えたときに、間違いの種類を選ぶと、ここに傾向がたまっていきます。</p>'
+    : ['careless','unknown','misread'].map(k =>
+        '<div class="bar-row"><span>'+TYPE_LABEL[k]+'</span><span class="bar"><i style="width:'+Math.round(types[k]/total*100)+'%"></i></span><span>'+types[k]+' 回</span></div>').join('')
+      + '<p class="small">一番多い種類が、あなたの「次のひと工夫」です。うっかりが多ければ見直しの時間を、考え方が多ければ教科書の例題を、読み違いが多ければ問題文に線を引く工夫を。</p>';
+}
+/* ================= セッション（診断／復習） ================= */
+QUESTIONS.forEach((q, i) => q.id = ['m','j','e','s','h'][['math','jpn','eng','sci','soc'].indexOf(q.s)] + (i % 12 + 1) + '_' + q.s);
+let SESS = null;
+function startSession(mode, ids){
+  const byId = {}; QUESTIONS.forEach(q => byId[q.id] = q);
+  SESS = { mode, list: ids.map(id => byId[id]).filter(Boolean), idx: 0, results: [], pickedType: null };
+  if(!SESS.list.length){ renderHome(); show('scr-home'); return; }
+  renderQuestion();
+  show('scr-quiz');
+}
+function renderQuestion(){
+  const q = SESS.list[SESS.idx];
+  const subj = SUBJECTS.find(s => s.id === q.s);
+  document.getElementById('quizProgress').textContent =
+    (SESS.mode === 'diag' ? '🩺 '+subj.name+'の診断' : '📅 今日の復習') + '　' + (SESS.idx+1) + ' / ' + SESS.list.length + ' 問　［単元：' + q.u + '］';
+  document.getElementById('quizStem').innerHTML = q.q;
+  document.getElementById('quizFig').innerHTML = q.fig ? figSVG(q.fig) : '';
+  const sw = document.getElementById('scratchWrap');
+  const needPad = !!q.scratch || q.s === 'math';
+  sw.classList.toggle('on', needPad);
+  if(needPad){
+    document.getElementById('scratchLabel').textContent = q.scratch
+      ? '✏️ メモ描きスペース（図を写したり、考えを書いたりできます。端まで書くと上下左右に自動で広がります。採点には関係しません）'
+      : '✏️ 計算スペース（端まで書くと上下左右に自動で広がります。採点には関係しません）';
+    setTimeout(()=> window.__fitScratch && window.__fitScratch(true), 80);
+  }
+  const fb = document.getElementById('quizFeedback'); fb.className = 'feedback'; fb.style.display = 'none';
+  document.getElementById('typePick').style.display = 'none';
+  SESS.pickedType = null;
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('on'));
+  const box = document.getElementById('quizChoices');
+  box.innerHTML = '';
+  SESS.order = q.c.map((_, i) => i);
+  for(let i = SESS.order.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [SESS.order[i], SESS.order[j]] = [SESS.order[j], SESS.order[i]]; }
+  SESS.order.forEach(origIdx => {
+    const b = document.createElement('button'); b.className = 'choice'; b.innerHTML = q.c[origIdx];
+    b.addEventListener('click', ()=> answer(origIdx));
+    box.appendChild(b);
+  });
+}
+/* 回答スペース：四方向に自動で広がるメモ描き（日めくり数学と同じ方式）
+   線は「紙の座標」で記録し、端に近づくと紙そのものを上下左右へ広げる。
+   左・上への拡張は表示の原点をずらすことで行い、書いた線が飛ばないようにする。 */
+(function(){
+  const cv = document.getElementById('scratch'); const ctx = cv.getContext('2d');
+  const wrap = document.getElementById('scratchScroll');
+  const STEP_X = 260, STEP_Y = 220, MARGIN = 46, MAX = 4200, INIT_H = 210;
+  let strokes = [], cur = null, drawing = false;
+  let vx = 0, vy = 0; // 紙の座標で見た、キャンバス左上の位置
+  function redraw(){
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.lineWidth = 2.2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#33506b';
+    ctx.setTransform(1,0,0,1,-vx,-vy);
+    const draw = s => { if(!s || s.length < 2) return; ctx.beginPath(); ctx.moveTo(s[0][0], s[0][1]);
+      for(let i = 1; i < s.length; i++) ctx.lineTo(s[i][0], s[i][1]); ctx.stroke(); };
+    strokes.forEach(draw); draw(cur);
+    ctx.setTransform(1,0,0,1,0,0);
+  }
+  function resize(w, h){ cv.width = Math.min(w, MAX); cv.height = Math.min(h, MAX);
+    cv.style.width = cv.width + 'px'; cv.style.height = cv.height + 'px'; redraw(); }
+  window.__fitScratch = function(reset){
+    if(reset){ strokes = []; cur = null; vx = 0; vy = 0; }
+    const w = Math.max(260, wrap.clientWidth - 2);
+    if(cv.width !== w || reset) resize(w, INIT_H); else redraw();
+    wrap.scrollLeft = 0; wrap.scrollTop = 0;
+  };
+  function paperPos(e){ const r = cv.getBoundingClientRect();
+    return [e.clientX - r.left + vx, e.clientY - r.top + vy]; }
+  function expand(px, py){
+    const right = vx + cv.width, bottom = vy + cv.height;
+    if(px > right - MARGIN && cv.width < MAX){
+      resize(cv.width + STEP_X, cv.height);
+      wrap.scrollLeft = Math.max(0, (px - vx) - wrap.clientWidth + MARGIN + 60);
+    }
+    if(py > bottom - MARGIN && cv.height < MAX){
+      resize(cv.width, cv.height + STEP_Y);
+      wrap.scrollTop = Math.max(0, (py - vy) - wrap.clientHeight + MARGIN + 60);
+    }
+    if(px < vx + MARGIN){ vx -= STEP_X; resize(cv.width + STEP_X, cv.height); }
+    if(py < vy + MARGIN){ vy -= STEP_Y; resize(cv.width, cv.height + STEP_Y); }
+  }
+  cv.addEventListener('pointerdown', e => {
+    if(cv.width < 50) window.__fitScratch(false);
+    drawing = true; cur = [paperPos(e)]; e.preventDefault();
+  });
+  window.addEventListener('pointermove', e => {
+    if(!drawing) return;
+    const p = paperPos(e);
+    cur.push(p); expand(p[0], p[1]); redraw();
+  });
+  window.addEventListener('pointerup', ()=> {
+    if(drawing && cur && cur.length > 1) strokes.push(cur);
+    cur = null; drawing = false; redraw();
+  });
+  document.getElementById('scratchClear').addEventListener('click', ()=> { strokes = []; cur = null; redraw(); });
+  /* スクロール帯（日めくり数学と同じ発想：帯を引っぱって見渡す） */
+  function stripDrag(el, axis){
+    let active = false, last = 0;
+    el.addEventListener('pointerdown', e => { active = true; last = axis === 'y' ? e.clientY : e.clientX; e.preventDefault(); });
+    window.addEventListener('pointermove', e => {
+      if(!active) return;
+      const now = axis === 'y' ? e.clientY : e.clientX;
+      const d = now - last; last = now;
+      if(axis === 'y') wrap.scrollTop += d * Math.max(1, wrap.scrollHeight / Math.max(1, wrap.clientHeight));
+      else wrap.scrollLeft += d * Math.max(1, wrap.scrollWidth / Math.max(1, wrap.clientWidth));
+    });
+    window.addEventListener('pointerup', ()=> active = false);
+  }
+  stripDrag(document.getElementById('vStrip'), 'y');
+  stripDrag(document.getElementById('hStrip'), 'x');
+})();
+/* 回答 */
+function answer(origIdx){
+  const q = SESS.list[SESS.idx];
+  const right = origIdx === q.a;
+  document.querySelectorAll('#quizChoices .choice').forEach((b, j) => {
+    b.disabled = true;
+    if(SESS.order[j] === q.a) b.classList.add('right');
+    else if(SESS.order[j] === origIdx) b.classList.add('wrong');
+  });
+  const fb = document.getElementById('quizFeedback');
+  fb.style.display = 'block'; fb.classList.add(right ? 'ok' : 'ng');
+  document.getElementById('fbTitle').textContent = right ? '⭕ 正解です' : '❌ 残念、不正解です（正解は ' + stripTags(q.c[q.a]) + '）';
+  document.getElementById('fbExpl').innerHTML = q.e;
+  if(right) soundOK(); else soundNG();
+  SESS.results.push({ qid: q.id, right });
+  SESS.curRight = right;
+  const nx = document.getElementById('quizNext');
+  if(right){ nx.disabled = false; document.getElementById('typePick').style.display = 'none'; }
+  else { nx.disabled = true; document.getElementById('typePick').style.display = ''; }
+}
+function stripTags(h){ const d = document.createElement('div'); d.innerHTML = h; return d.textContent; }
+document.querySelectorAll('.type-btn').forEach(b => b.addEventListener('click', ()=>{
+  document.querySelectorAll('.type-btn').forEach(x => x.classList.toggle('on', x === b));
+  SESS.pickedType = b.dataset.t;
+  document.getElementById('quizNext').disabled = false;
+}));
+document.getElementById('quizNext').addEventListener('click', ()=>{
+  const q = SESS.list[SESS.idx];
+  if(!SESS.curRight){
+    const types = load(LS.types, {careless:0, unknown:0, misread:0});
+    if(SESS.pickedType) types[SESS.pickedType]++;
+    save(LS.types, types);
+    upsertQueue(q.id, false);
+  } else if(SESS.mode === 'review'){
+    upsertQueue(q.id, true);
+  }
+  SESS.idx++;
+  if(SESS.idx < SESS.list.length) renderQuestion();
+  else finishSession();
+});
+/* 復習キュー：間隔反復（翌日→3日後→7日後、3回正解で卒業） */
+function upsertQueue(qid, correctInReview){
+  const queue = load(LS.queue, []);
+  const t = todayStr();
+  const e = queue.find(x => x.qid === qid);
+  if(!correctInReview){
+    if(e){ e.stage = 0; e.due = addDays(t, 1); }
+    else queue.push({ qid, stage: 0, due: addDays(t, 1) });
+  } else if(e){
+    e.stage++;
+    if(e.stage >= 3){ queue.splice(queue.indexOf(e), 1); return save(LS.queue, queue); }
+    e.due = addDays(t, e.stage === 1 ? 3 : 7);
+  }
+  save(LS.queue, queue);
+}
+/* ================= 結果 ================= */
+function finishSession(){
+  if(SESS.mode === 'review'){
+    const good = SESS.results.filter(r => r.right).length;
+    document.getElementById('resultTitle').textContent = '📅 今日の復習の結果';
+    document.getElementById('resultSummary').innerHTML =
+      '<p style="margin:0; font-size:1.05rem;">'+SESS.results.length+' 問中 <b>'+good+' 問</b> 正解しました。</p>'
+      + '<p class="small">正解した問題は次の間隔へ進み、3回続けて正解すると卒業です。間違えた問題は、明日もう一度出てきます。</p>';
+    document.getElementById('resultBars').innerHTML = '';
+    document.getElementById('resultGrowth').innerHTML = '';
+    document.getElementById('resultTypes').innerHTML = '';
+    soundFanfare(); show('scr-result'); return;
+  }
+  const subjId = SESS.list[0].s;
+  const subj = SUBJECTS.find(s => s.id === subjId);
+  const units = [...new Set(SESS.list.map(q => q.u))];
+  const rate = {};
+  units.forEach(u => {
+    const qs = SESS.results.filter(r => { const q = QUESTIONS.find(x => x.id === r.qid); return q.u === u; });
+    rate[u] = qs.length ? qs.filter(r => r.right).length / qs.length : 0;
+  });
+  const hist = load(LS.hist, {});
+  const prevList = hist[subjId] || [];
+  const prev = prevList.length ? prevList[prevList.length - 1] : null;
+  hist[subjId] = prevList.concat([{ date: todayStr(), units: rate }]);
+  save(LS.hist, hist);
+  const total = SESS.results.length, good = SESS.results.filter(r => r.right).length;
+  document.getElementById('resultTitle').textContent = '🩺 ' + subj.name + 'の診断結果';
+  document.getElementById('resultSummary').innerHTML =
+    '<p style="margin:0; font-size:1.05rem;">'+total+' 問中 <b>'+good+' 問</b> 正解（正答率 '+Math.round(good/total*100)+'%）でした。</p>'
+    + '<p class="small">正答率の低い単元が、今の「弱点」です。間違えた問題は復習キューに入りました。</p>';
+  document.getElementById('resultBars').innerHTML = units.map(u => {
+    const p = Math.round(rate[u]*100);
+    const cls = p < 50 ? 'low' : (p < 100 ? 'mid' : '');
+    return '<div class="bar-row"><span>'+u+'</span><span class="bar"><i class="'+cls+'" style="width:'+p+'%"></i></span><span>'+p+'%</span></div>';
+  }).join('');
+  const grown = prev ? units.filter(u => rate[u] > (prev.units[u] ?? -1)) : [];
+  document.getElementById('resultGrowth').innerHTML =
+    '<h3 style="margin:16px 0 6px; font-size:1rem;">🌱 伸びた所（前回との比較）</h3>'
+    + (prev
+        ? (grown.length
+            ? '<p style="margin:0">'+grown.map(u => '<span class="uptag">'+u+'：'+Math.round((prev.units[u]||0)*100)+'% → '+Math.round(rate[u]*100)+'%</span>').join('')+'</p>'
+            : '<p class="small" style="margin:0">今回は、前回を上回った単元はありませんでした。復習を続けると、ここに伸びが表れてきます。</p>')
+        : '<p class="small" style="margin:0">初めての診断です。次回から、前回より伸びた単元がここに表示されます。</p>');
+  const types = load(LS.types, {careless:0, unknown:0, misread:0});
+  const tt = types.careless + types.unknown + types.misread;
+  document.getElementById('resultTypes').innerHTML =
+    '<h3 style="margin:16px 0 6px; font-size:1rem;">間違いの種類（これまでの合計）</h3>'
+    + (tt ? ['careless','unknown','misread'].map(k => '<span class="uptag" style="background:#fff6dd; border-color:#ecd28a; color:#6b5310">'+TYPE_LABEL[k]+'：'+types[k]+' 回</span>').join('') : '<p class="small" style="margin:0">まだ記録がありません。</p>');
+  soundFanfare(); show('scr-result');
+}
+document.getElementById('toPlanBtn').addEventListener('click', ()=>{ renderPlan(); show('scr-plan'); });
+document.getElementById('toHomeBtn1').addEventListener('click', ()=>{ renderHome(); show('scr-home'); });
+document.getElementById('toHomeBtn2').addEventListener('click', ()=>{ renderHome(); show('scr-home'); });
+/* ================= 復習プランと印刷 ================= */
+function renderPlan(){
+  const queue = load(LS.queue, []);
+  const byId = {}; QUESTIONS.forEach(q => byId[q.id] = q);
+  if(!queue.length){
+    document.getElementById('planBody').innerHTML = '<p class="small">復習キューは空です。診断で間違えた問題が、ここに並びます。</p>';
+    buildPrintSheet([]); return;
+  }
+  const t = todayStr();
+  const sorted = queue.slice().sort((a, b) => a.due < b.due ? -1 : 1);
+  document.getElementById('planBody').innerHTML = sorted.map(e => {
+    const q = byId[e.qid]; if(!q) return '';
+    const subj = SUBJECTS.find(s => s.id === q.s);
+    return '<div class="bar-row" style="grid-template-columns:1fr auto;"><span>'+subj.icon+' '+subj.name+'・'+q.u
+      + '<span class="duetag">'+(e.due <= t ? '今日が予定日' : e.due.slice(5).replace('-','/')+' 予定')+'／あと '+(3 - e.stage)+' 回</span></span></div>';
+  }).join('');
+  buildPrintSheet(sorted.map(e => byId[e.qid]).filter(Boolean));
+}
+function buildPrintSheet(qs){
+  const t = todayStr();
+  document.getElementById('printSheet').innerHTML =
+    '<h1>ニガテバスター 弱点復習プリント（'+t+'）</h1><p>名前：＿＿＿＿＿＿＿＿　　間違えた問題だけを集めました。図の問題は余白に考えを描きましょう。</p>'
+    + qs.map((q, i) => '<div class="pq"><b>問'+(i+1)+'</b>（'+SUBJECTS.find(s => s.id === q.s).name+'・'+q.u+'） '+q.q
+        + (q.fig ? '<div>'+figSVG(q.fig)+'</div>' : '')
+        + '<div class="choices-print">'+q.c.map((c, j) => (j+1)+'．'+c).join('<br>')+'</div></div>').join('')
+    + '<div class="answers"><h1>解答と解説</h1>'
+    + qs.map((q, i) => '<div class="pq"><b>問'+(i+1)+'</b>　答え：'+(q.a+1)+'．'+q.c[q.a]+'<br>'+q.e+'</div>').join('') + '</div>';
+}
+document.getElementById('printBtn').addEventListener('click', ()=> window.print());
+renderHome();
+</script>
+</body>
+</html>
