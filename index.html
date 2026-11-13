@@ -106,6 +106,11 @@ sup{font-size:.72em;}
 <main>
 <!-- ============ ホーム ============ -->
 <section id="scr-home" class="screen on">
+  <div class="card" id="dailyCard">
+    <h2 class="sec">🎓 今日のひとこと（受験生へのアドバイス）</h2>
+    <div id="dailyAdvice"></div>
+    <div class="toolbar"><button class="btn ghost" id="toAdviceBtn">ほかのアドバイスも読む</button></div>
+  </div>
   <div class="card" id="todayCard">
     <h2 class="sec">📅 今日の復習</h2>
     <div id="todayBody"></div>
@@ -122,6 +127,17 @@ sup{font-size:.72em;}
   <div class="card">
     <h2 class="sec">使い方と約束</h2>
     <p class="small">診断は「テスト」ではなく、弱点を見つけるためのものです。間違えたら、その場で「間違いの種類」（うっかりミス／考え方が分からなかった／読み違い）を自分で選んでください。記録はこの端末の中にだけ保存され、外に送られることはありません。結果を気にしすぎず、今日の復習を少しずつ進めることが力になります。</p>
+  </div>
+</section>
+
+<!-- ============ 受験生へのアドバイス ============ -->
+<section id="scr-advice" class="screen">
+  <div class="card">
+    <h2 class="sec">🎓 受験生へのアドバイス</h2>
+    <p class="small">長く中学生を教えてきた立場から、受験勉強の途中で思い出してほしいことを集めました。気になる分類からどうぞ。</p>
+    <div class="type-btns" id="adviceCats" style="margin-bottom:12px"></div>
+    <div id="adviceList"></div>
+    <div class="toolbar"><button class="btn ghost" id="toHomeBtn3">ホームへ</button></div>
   </div>
 </section>
 
@@ -391,6 +407,26 @@ const QUESTIONS = [
 {s:'soc', u:'公民のきほん', q:'三権分立で分けられている3つの権力の組み合わせとして正しいものは、どれですか。',
  c:['立法・行政・司法','立法・経済・教育','行政・軍事・司法','司法・外交・経済'], a:0,
  e:'三権は、立法（国会）・行政（内閣）・司法（裁判所）。互いに抑え合って権力の集中を防ぎます。'}
+];
+
+/* ================= 受験生へのアドバイス ================= */
+const ADVICE_CATS = ['勉強の進め方','弱点との向き合い方','復習のコツ','試験前と当日の心構え','気持ちの保ち方'];
+const ADVICE = [
+{cat:'勉強の進め方', t:'小さく分けて、毎日少しずつ', b:'「今日は1時間勉強する」より、「問題集を2ページだけ」のような小さな約束のほうが続きます。机に向かうハードルを下げることが、結局はいちばんの近道です。'},
+{cat:'勉強の進め方', t:'「分かったつもり」を確かめる', b:'解き方を読んで分かった気になっても、自分の手で解くと止まることがよくあります。解説を見ないで解けるか試すのが、本当の確認です。'},
+{cat:'勉強の進め方', t:'時間を区切って、休む', b:'25分やって5分休む、くらいの区切りが集中には合っています。だらだら続けるより、区切って休むほうが合計の力になります。休むことも勉強のうちです。'},
+{cat:'弱点との向き合い方', t:'間違いは、宝の地図', b:'間違えた問題は、伸びしろの場所を教えてくれる地図です。恥ずかしいものではなく、いちばん役に立つ情報。このアプリで間違いの種類を選ぶのも、そのためです。'},
+{cat:'弱点との向き合い方', t:'弱点は「単元」まで小さくする', b:'「数学が苦手」ではなく「方程式の文章題が苦手」というように小さくすると、やることが見えてきます。漠然とした苦手は、それだけで重く感じるものです。'},
+{cat:'弱点との向き合い方', t:'比べる相手は、昨日の自分', b:'友だちの進み具合と比べると、焦りだけが残ります。先週の自分より1問多く解けた。それで十分すごいことです。'},
+{cat:'復習のコツ', t:'忘れかけたころが、効きどき', b:'翌日、3日後、1週間後と、間隔をあけて思い出すと記憶は長持ちします。このアプリの復習キューは、そのタイミングに合わせて出てくるようになっています。'},
+{cat:'復習のコツ', t:'間違いの記録は、1行で', b:'間違えた問題は、答えを写すより「なぜ間違えたか」を1行で残すと効きます。うっかり、考え方、読み違い。その区別だけでも十分です。'},
+{cat:'復習のコツ', t:'解き直しは、解説を閉じてから', b:'解説を読んだら、いったん閉じて、もう一度自分の手で解いてみてください。手が動いた分だけ、身につきます。'},
+{cat:'試験前と当日の心構え', t:'前日は、新しいことをしない', b:'試験の前日は、解き慣れた問題を軽く見直すくらいがちょうどいい。そして夜は眠ること。それが前日のいちばんの勉強です。'},
+{cat:'試験前と当日の心構え', t:'当日は「いつも通り」を運ぶ', b:'朝ごはん、持ち物の確認、会場までの道のり。いつもの手順をいつも通りに運ぶこと。それが緊張を小さくしてくれます。'},
+{cat:'試験前と当日の心構え', t:'分からない問題は、印をつけて次へ', b:'1問の前で止まらないこと。印をつけて先へ進んでも、頭の隅では考え続けてくれています。最後にもう一度戻れば大丈夫です。'},
+{cat:'気持ちの保ち方', t:'模試の結果は「現在地」', b:'模試の判定は、未来を決めるものではなく、現在地を表示するものです。現在地が分かれば、次の一歩が決まります。'},
+{cat:'気持ちの保ち方', t:'しんどい日は、休んでいい', b:'やる気の出ない日もあります。そういう日は早く寝てしまうのが一番です。続ける力は、休む力とセットになっています。'},
+{cat:'気持ちの保ち方', t:'応援してくれる人がいる', b:'家族や先生は、結果だけでなく、頑張ってきた過程も見ています。しんどさは一人で抱え込まないでください。'}
 ];
 
 /* ================= 図（数値と一致するSVG） ================= */
@@ -711,6 +747,33 @@ function buildPrintSheet(qs){
     + qs.map((q, i) => '<div class="pq"><b>問'+(i+1)+'</b>　答え：'+(q.a+1)+'．'+q.c[q.a]+'<br>'+q.e+'</div>').join('') + '</div>';
 }
 document.getElementById('printBtn').addEventListener('click', ()=> window.print());
+/* ================= 受験生へのアドバイス ================= */
+function adviceCard(a){
+  return '<div style="border:1.5px solid var(--line); border-radius:12px; padding:13px 14px; margin-bottom:11px">'
+    + '<div style="font-weight:800">'+a.t+'</div>'
+    + '<div class="small" style="color:#8a6d2f; margin:2px 0 5px">'+a.cat+'</div>'
+    + '<div style="font-size:.95rem">'+a.b+'</div></div>';
+}
+function renderDailyAdvice(){
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const doy = Math.floor((now - start) / 86400000);
+  document.getElementById('dailyAdvice').innerHTML = adviceCard(ADVICE[doy % ADVICE.length]);
+}
+let adviceFilter = '全部';
+function renderAdvice(){
+  document.getElementById('adviceCats').innerHTML =
+    ['全部'].concat(ADVICE_CATS).map(c =>
+      '<button class="type-btn'+(c === adviceFilter ? ' on' : '')+'" data-c="'+c+'">'+c+'</button>').join('');
+  document.querySelectorAll('#adviceCats .type-btn').forEach(b => b.addEventListener('click', ()=>{
+    adviceFilter = b.dataset.c; renderAdvice();
+  }));
+  const list = adviceFilter === '全部' ? ADVICE : ADVICE.filter(a => a.cat === adviceFilter);
+  document.getElementById('adviceList').innerHTML = list.map(adviceCard).join('');
+}
+document.getElementById('toAdviceBtn').addEventListener('click', ()=>{ renderAdvice(); show('scr-advice'); });
+document.getElementById('toHomeBtn3').addEventListener('click', ()=>{ renderHome(); renderDailyAdvice(); show('scr-home'); });
+renderDailyAdvice();
 renderHome();
 </script>
 </body>
