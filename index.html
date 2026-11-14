@@ -67,6 +67,17 @@ h2.sec{font-size:1.12rem; margin:0 0 10px; border-left:6px solid var(--sky); pad
 .bar i{display:block; height:100%; background:var(--sky); border-radius:8px;}
 .bar i.low{background:var(--bad);} .bar i.mid{background:var(--accent);}
 .uptag{display:inline-block; background:#eafaf0; border:1.4px solid #a9dfc0; color:#1c6b3c; border-radius:999px; padding:2px 11px; margin:3px 4px 3px 0; font-size:.88rem; font-weight:700;}
+.exam{text-align:center; padding:6px 2px 2px;}
+.exam .lead{font-weight:800; font-size:1.06rem; margin:0;}
+.exam .days{font-size:clamp(3.2rem,17vw,4.8rem); font-weight:900; line-height:1.15; color:#b3541e; margin:2px 0;}
+.exam .days small{font-size:1.5rem; font-weight:800;}
+.exam .when{color:#6b6257; font-size:.95rem; margin:0;}
+.exam .cheer{font-size:1.12rem; font-weight:800; line-height:1.6; margin:4px 0;}
+.focus-unit{display:flex; justify-content:space-between; gap:10px; border:1.5px solid var(--line); border-radius:12px; padding:10px 13px; margin-bottom:9px; flex-wrap:wrap;}
+.focus-unit b{font-size:1.02rem;}
+.focus-unit .n{font-weight:900; color:#b3541e; white-space:nowrap;}
+.sched-row{display:flex; justify-content:space-between; gap:10px; padding:7px 2px; border-bottom:1px dashed var(--line); flex-wrap:wrap;}
+.sched-row .d{font-weight:800; white-space:nowrap;}
 .duetag{display:inline-block; background:#fff6dd; border:1.4px solid #ecd28a; border-radius:999px; padding:1px 10px; font-size:.8rem; margin-left:7px;}
 #scratchWrap{display:none; margin-top:10px;}
 #scratchWrap.on{display:block;}
@@ -109,13 +120,17 @@ sup{font-size:.72em;}
 <main>
 <!-- ============ ホーム ============ -->
 <section id="scr-home" class="screen on">
+  <div class="card" id="examCard">
+    <h2 class="sec">🗓 共通テストまで</h2>
+    <div id="examBody"></div>
+  </div>
   <div class="card" id="dailyCard">
     <h2 class="sec">🎓 今日のひとこと（受験生へのアドバイス）</h2>
     <div id="dailyAdvice"></div>
     <div class="toolbar"><button class="btn ghost" id="toAdviceBtn">ほかのアドバイスも読む</button></div>
   </div>
   <div class="card" id="todayCard">
-    <h2 class="sec">📅 今日の復習</h2>
+    <h2 class="sec">🔥 直前集中プラン（今日やる復習）</h2>
     <div id="todayBody"></div>
   </div>
   <div class="card">
@@ -129,7 +144,7 @@ sup{font-size:.72em;}
   </div>
   <div class="card">
     <h2 class="sec">使い方と約束</h2>
-    <p class="small">診断は「テスト」ではなく、弱点を見つけるためのものです。間違えたら、その場で「間違いの種類」（うっかりミス／考え方が分からなかった／読み違い）を自分で選んでください。記録はこの端末の中にだけ保存され、外に送られることはありません。結果を気にしすぎず、今日の復習を少しずつ進めることが力になります。</p>
+    <p class="small">診断は「テスト」ではなく、弱点を見つけるためのものです。間違えたら、その場で「間違いの種類」（うっかりミス／考え方が分からなかった／読み違い）を自分で選んでください。記録はこの端末の中にだけ保存され、外に送られることはありません。結果を気にしすぎず、今日の復習を少しずつ進めることが力になります。</p><p class="small" style="margin-top:8px">アプリの版：v1.1（共通テスト直前モード）</p>
   </div>
 </section>
 
@@ -472,16 +487,78 @@ function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.t
   window.scrollTo(0,0); }
 /* ================= ホーム ================= */
 const TYPE_LABEL = { careless:'うっかりミス', unknown:'考え方が分からなかった', misread:'問題の読み違い' };
-function renderHome(){
+const EXAM_D1 = '2027-01-16', EXAM_D2 = '2027-01-17';
+function daysUntil(str){ const a = new Date(todayStr()+'T00:00:00'), b = new Date(str+'T00:00:00');
+  return Math.round((b - a) / 86400000); }
+function renderExam(){
+  const el = document.getElementById('examBody'); if(!el) return;
+  const d1 = daysUntil(EXAM_D1), d2 = daysUntil(EXAM_D2);
+  if(d1 > 0){
+    el.innerHTML = '<div class="exam"><p class="lead">大学入学共通テストまで</p>'
+      + '<p class="days">あと ' + d1 + '<small> 日</small></p>'
+      + '<p class="when">本番は 2027年1月16日（土）・17日（日）です</p>'
+      + '<p class="when">' + (d1 <= 30 ? 'ここからは新しい問題集に手を広げず、苦手の復習を回す時期です。' : '診断で苦手を見つけて、間隔をあけて復習するのが近道です。') + '</p></div>';
+  } else if(d2 >= 0){
+    el.innerHTML = '<div class="exam"><p class="cheer">🌸 本番当日です。<br>深呼吸をして、いつも通りに。<br>これまでの復習が、あなたの味方です。</p>'
+      + '<p class="when">大学入学共通テスト 2027年1月16日・17日</p></div>';
+  } else {
+    el.innerHTML = '<div class="exam"><p class="cheer">🎓 共通テスト、おつかれさまでした。</p>'
+      + '<p class="when">ここまで積み重ねた復習は、次の一歩の力になります。診断と復習は、これからの学習にもそのまま使えます。</p></div>';
+  }
+}
+function renderFocus(){
   const q = load(LS.queue, []);
+  const hist = load(LS.hist, {});
   const t = todayStr();
+  const el = document.getElementById('todayBody');
+  const byId = {}; QUESTIONS.forEach(x => byId[x.id] = x);
+  const diagnosed = Object.values(hist).some(h => Array.isArray(h) && h.length);
+  if(!diagnosed && !q.length){
+    el.innerHTML = '<p style="margin:0">直前集中プランは、診断で見つけた苦手単元を、間隔をあけて復習する仕組みです。</p>'
+      + '<p style="margin:.5em 0 0"><b>まずは下の教科から診断を受けてみましょう。</b>間違えた問題が復習キューに入り、ここに「今日やる復習」として出てきます。</p>';
+    return;
+  }
   const due = q.filter(e => e.due <= t);
-  document.getElementById('todayBody').innerHTML = due.length
-    ? '<p style="margin:0">今日の分の復習が <b>'+due.length+' 問</b> あります。</p>'
-      + '<div class="toolbar"><button class="btn teal" id="startReview">今日の復習をはじめる</button></div>'
-    : '<p style="margin:0">今日の分の復習はありません。'+(q.length ? '（キューには '+q.length+' 問が入っていて、予定日に出てきます）' : 'まずは診断を受けてみましょう。')+'</p>';
+  let h = '';
+  if(due.length){
+    const groups = {};
+    due.forEach(e => { const qq = byId[e.qid]; if(!qq) return;
+      const subj = SUBJECTS.find(s => s.id === qq.s);
+      const key = subj.icon + ' ' + subj.name + '・' + qq.u;
+      groups[key] = (groups[key] || 0) + 1; });
+    h += '<p style="margin:0">今日が予定日の復習が <b>' + due.length + ' 問</b> あります（期限が来た苦手単元）。</p>'
+      + '<div style="margin-top:10px">' + Object.keys(groups).map(k =>
+          '<div class="focus-unit"><b>' + k + '</b><span class="n">' + groups[k] + ' 問</span></div>').join('') + '</div>'
+      + '<div class="toolbar"><button class="btn teal" id="startReview" style="font-size:1.08rem; padding:14px 20px">▶ 今日の復習をはじめる（' + due.length + ' 問）</button></div>';
+  } else if(q.length){
+    h += '<p style="margin:0">✅ 今日が予定日の復習はありません。よく回せています。</p>';
+  } else {
+    h += '<p style="margin:0">🎉 復習キューは空です。苦手単元はすべて卒業しました。この調子で診断を続けて、抜けがないか確かめましょう。</p>';
+  }
+  const future = q.filter(e => e.due > t).sort((a, b) => a.due < b.due ? -1 : 1);
+  if(future.length){
+    const byDate = {};
+    future.forEach(e => { (byDate[e.due] = byDate[e.due] || []).push(e); });
+    const dates = Object.keys(byDate).sort().slice(0, 5);
+    h += '<p style="margin:14px 0 4px"><b>これからの復習予定</b>（期限の順）</p>' + dates.map(d => {
+      const list = byDate[d];
+      const first = byId[list[0].qid];
+      const fs = first ? SUBJECTS.find(s => s.id === first.s) : null;
+      const dd = daysUntil(d);
+      return '<div class="sched-row"><span class="d">' + (dd === 1 ? '明日' : d.slice(5).replace('-','/')) + '（あと ' + dd + ' 日）</span>'
+        + '<span>' + list.length + ' 問' + (fs ? '（' + fs.name + '・' + first.u + (list.length > 1 ? ' ほか' : '') + '）' : '') + '</span></div>';
+    }).join('')
+    + '<div class="toolbar"><button class="btn ghost" id="toPlanFromHome">復習プラン全体を見る</button></div>';
+  }
+  el.innerHTML = h;
   const b = document.getElementById('startReview');
   if(b) b.addEventListener('click', ()=> startSession('review', due.map(e=>e.qid)));
+  const p = document.getElementById('toPlanFromHome');
+  if(p) p.addEventListener('click', ()=>{ renderPlan(); show('scr-plan'); });
+}
+function renderHome(){
+  renderExam();
+  renderFocus();
   const hist = load(LS.hist, {});
   document.getElementById('subjGrid').innerHTML = SUBJECTS.map(s => {
     const h = hist[s.id] || [];
